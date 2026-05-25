@@ -69,25 +69,17 @@ export const cardStyles = css`
   }
 
   /* Primary: next fire time */
-  .time-wrapper {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-  }
-
-  .time-wrapper:hover .primary-time {
-    opacity: 0.7;
-  }
-
-  .time-input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    font-size: 16px;
+  .time-edit-input {
+    font-weight: 600;
+    color: var(--alarm-text);
+    line-height: 1.2;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--alarm-primary);
+    outline: none;
+    padding: 0;
+    font-family: inherit;
+    color-scheme: dark light;
   }
 
   .primary-time {
@@ -96,6 +88,11 @@ export const cardStyles = css`
     color: var(--alarm-text);
     line-height: 1.2;
     transition: opacity 0.2s;
+    cursor: pointer;
+  }
+
+  .primary-time:hover:not(.disabled) {
+    opacity: 0.7;
   }
 
   .primary-time.disabled {

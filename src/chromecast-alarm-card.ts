@@ -25,7 +25,7 @@ export class ChromecastAlarmCard extends LitElement {
 
   @property({ attribute: false }) public hass!: any;
   @state() private _config!: CardConfig;
-  // Firing state is read from switch attribute (is_firing)
+  @state() private _editingTime = false;
 
   // -- HA card lifecycle --------------------------------------------------
 
@@ -131,14 +131,33 @@ export class ChromecastAlarmCard extends LitElement {
     });
   }
 
+  private _startEditTime(): void {
+    this._editingTime = true;
+    // Focus the input after render
+    this.updateComplete.then(() => {
+      const input = this.shadowRoot?.querySelector(
+        ".time-edit-input"
+      ) as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.showPicker?.();
+      }
+    });
+  }
+
   private _onTimeChange(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     const newTime = input.value;
+    this._editingTime = false;
     if (!newTime) return;
     this.hass.callService("chromecast_alarm", "set_time", {
       entity_id: this._switchEntity,
       time: newTime,
     });
+  }
+
+  private _onTimeBlur(): void {
+    this._editingTime = false;
   }
 
   private _toggleDay(dayCode: string): void {
@@ -265,29 +284,33 @@ export class ChromecastAlarmCard extends LitElement {
               `
             : nothing}
 
-          <!-- Primary time display (clickable to edit) -->
+          <!-- Primary time display (click to edit) -->
           <div>
-            <div class="time-wrapper">
-              <div
-                class="primary-time ${this._isFiring
-                  ? "firing"
-                  : enabled
-                  ? ""
-                  : "disabled"}"
-                style="--alarm-time-size:${timeSize};font-size:${timeSize}"
-              >
-                ${time}
-              </div>
-              ${enabled
-                ? html`<input
+            ${this._editingTime
+              ? html`
+                  <input
                     type="time"
-                    class="time-input"
+                    class="time-edit-input"
+                    style="font-size:${timeSize}"
                     .value=${(attrs.alarm_time || "07:00").substring(0, 5)}
                     @change=${this._onTimeChange}
-                    title="Click to change alarm time"
-                  />`
-                : nothing}
-            </div>
+                    @blur=${this._onTimeBlur}
+                  />
+                `
+              : html`
+                  <div
+                    class="primary-time ${this._isFiring
+                      ? "firing"
+                      : enabled
+                      ? ""
+                      : "disabled"}"
+                    style="font-size:${timeSize}"
+                    @click=${enabled ? () => this._startEditTime() : nothing}
+                    title=${enabled ? "Click to change time" : ""}
+                  >
+                    ${time}
+                  </div>
+                `}
             <div class="primary-label">${label}</div>
           </div>
 
