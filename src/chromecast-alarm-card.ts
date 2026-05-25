@@ -151,6 +151,32 @@ export class ChromecastAlarmCard extends LitElement {
     });
   }
 
+  private _onTimeChange(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    const newTime = input.value;
+    if (!newTime) return;
+    this.hass.callService("chromecast_alarm", "set_time", {
+      entity_id: this._switchEntity,
+      time: newTime,
+    });
+  }
+
+  private _toggleDay(dayCode: string): void {
+    const currentDays: string[] = this._attrs.days || [];
+    let newDays: string[];
+    if (currentDays.includes(dayCode)) {
+      newDays = currentDays.filter((d: string) => d !== dayCode);
+    } else {
+      newDays = [...currentDays, dayCode];
+    }
+    // Keep at least one day
+    if (newDays.length === 0) return;
+    this.hass.callService("chromecast_alarm", "set_days", {
+      entity_id: this._switchEntity,
+      days: newDays,
+    });
+  }
+
   // -- Time formatting ----------------------------------------------------
 
   private _formatNextFire(): { time: string; label: string } {
@@ -259,22 +285,33 @@ export class ChromecastAlarmCard extends LitElement {
               `
             : nothing}
 
-          <!-- Primary time display -->
+          <!-- Primary time display (clickable to edit) -->
           <div>
-            <div
-              class="primary-time ${this._firing
-                ? "firing"
-                : enabled
-                ? ""
-                : "disabled"}"
-              style="--alarm-time-size:${timeSize};font-size:${timeSize}"
-            >
-              ${time}
+            <div class="time-wrapper">
+              <div
+                class="primary-time ${this._firing
+                  ? "firing"
+                  : enabled
+                  ? ""
+                  : "disabled"}"
+                style="--alarm-time-size:${timeSize};font-size:${timeSize}"
+              >
+                ${time}
+              </div>
+              ${enabled
+                ? html`<input
+                    type="time"
+                    class="time-input"
+                    .value=${(attrs.alarm_time || "07:00").substring(0, 5)}
+                    @change=${this._onTimeChange}
+                    title="Click to change alarm time"
+                  />`
+                : nothing}
             </div>
             <div class="primary-label">${label}</div>
           </div>
 
-          <!-- Day chips -->
+          <!-- Day chips (clickable to toggle) -->
           <div class="days-row">
             ${DAY_CODES.map(
               (code, i) => html`
@@ -283,6 +320,8 @@ export class ChromecastAlarmCard extends LitElement {
                     ? "active"
                     : "inactive"}"
                   style="min-width:${daySize};height:${daySize}"
+                  @click=${() => this._toggleDay(code)}
+                  title="Toggle ${DAY_LABELS[i]}"
                 >
                   ${DAY_LABELS[i]}
                 </div>

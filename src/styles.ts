@@ -69,11 +69,33 @@ export const cardStyles = css`
   }
 
   /* Primary: next fire time */
+  .time-wrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+  }
+
+  .time-wrapper:hover .primary-time {
+    opacity: 0.7;
+  }
+
+  .time-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
   .primary-time {
     font-size: var(--alarm-time-size, 28px);
     font-weight: 600;
     color: var(--alarm-text);
     line-height: 1.2;
+    transition: opacity 0.2s;
   }
 
   .primary-time.disabled {
@@ -106,9 +128,18 @@ export const cardStyles = css`
     border-radius: 50%;
     font-size: 11px;
     font-weight: 500;
-    cursor: default;
+    cursor: pointer;
     user-select: none;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .day-chip:active {
+    transform: scale(0.9);
+  }
+
+  .day-chip:hover {
+    opacity: 0.85;
   }
 
   .day-chip.active {
