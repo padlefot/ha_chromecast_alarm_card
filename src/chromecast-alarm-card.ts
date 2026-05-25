@@ -26,6 +26,8 @@ export class ChromecastAlarmCard extends LitElement {
   @property({ attribute: false }) public hass!: any;
   @state() private _config!: CardConfig;
   @state() private _editingTime = false;
+  @state() private _editingVolume = false;
+  @state() private _editingTarget = false;
 
   // -- HA card lifecycle --------------------------------------------------
 
@@ -158,6 +160,59 @@ export class ChromecastAlarmCard extends LitElement {
 
   private _onTimeBlur(): void {
     this._editingTime = false;
+  }
+
+  // -- Volume editing -------------------------------------------------------
+
+  private _startEditVolume(): void {
+    this._editingVolume = true;
+  }
+
+  private _onVolumeChange(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    const newVolume = parseFloat(input.value) / 100;
+    this.hass.callService("chromecast_alarm", "set_volume", {
+      entity_id: this._switchEntity,
+      volume: Math.round(newVolume * 100) / 100,
+    });
+  }
+
+  private _onVolumeDone(): void {
+    this._editingVolume = false;
+  }
+
+  // -- Target editing -------------------------------------------------------
+
+  private _startEditTarget(): void {
+    this._editingTarget = true;
+  }
+
+  private _onTargetChange(ev: Event): void {
+    const select = ev.target as HTMLSelectElement;
+    const newTarget = select.value;
+    this._editingTarget = false;
+    if (!newTarget) return;
+    this.hass.callService("chromecast_alarm", "set_target", {
+      entity_id: this._switchEntity,
+      target: newTarget,
+    });
+  }
+
+  private _onTargetBlur(): void {
+    this._editingTarget = false;
+  }
+
+  private get _mediaPlayers(): { id: string; name: string }[] {
+    if (!this.hass) return [];
+    return Object.keys(this.hass.states)
+      .filter((eid) => eid.startsWith("media_player."))
+      .map((eid) => ({
+        id: eid,
+        name:
+          this.hass.states[eid].attributes.friendly_name ||
+          eid.replace("media_player.", ""),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   private _toggleDay(dayCode: string): void {
@@ -356,14 +411,65 @@ export class ChromecastAlarmCard extends LitElement {
           ${showDetails && enabled
             ? html`
                 <div class="details">
-                  <span class="detail-item">
-                    <ha-icon icon="mdi:volume-medium"></ha-icon>
-                    ${Math.round((attrs.volume || 0) * 100)}%
-                  </span>
-                  <span class="detail-item">
-                    <ha-icon icon="mdi:cast-audio"></ha-icon>
-                    ${(attrs.target || "").replace("media_player.", "")}
-                  </span>
+                  ${this._editingVolume
+                    ? html`
+                        <span class="detail-item volume-edit">
+                          <ha-icon icon="mdi:volume-medium"></ha-icon>
+                          <input
+                            type="range"
+                            class="volume-slider"
+                            min="0"
+                            max="100"
+                            step="5"
+                            .value=${String(Math.round((attrs.volume || 0) * 100))}
+                            @input=${this._onVolumeChange}
+                            @change=${this._onVolumeDone}
+                          />
+                          <span class="volume-label">${Math.round((attrs.volume || 0) * 100)}%</span>
+                        </span>
+                      `
+                    : html`
+                        <span
+                          class="detail-item clickable"
+                          @click=${() => this._startEditVolume()}
+                          title="Click to change volume"
+                        >
+                          <ha-icon icon="mdi:volume-medium"></ha-icon>
+                          ${Math.round((attrs.volume || 0) * 100)}%
+                        </span>
+                      `}
+                  ${this._editingTarget
+                    ? html`
+                        <span class="detail-item target-edit">
+                          <ha-icon icon="mdi:cast-audio"></ha-icon>
+                          <select
+                            class="target-select"
+                            @change=${this._onTargetChange}
+                            @blur=${this._onTargetBlur}
+                          >
+                            ${this._mediaPlayers.map(
+                              (mp) => html`
+                                <option
+                                  value=${mp.id}
+                                  ?selected=${mp.id === attrs.target}
+                                >
+                                  ${mp.name}
+                                </option>
+                              `
+                            )}
+                          </select>
+                        </span>
+                      `
+                    : html`
+                        <span
+                          class="detail-item clickable"
+                          @click=${() => this._startEditTarget()}
+                          title="Click to change speaker"
+                        >
+                          <ha-icon icon="mdi:cast-audio"></ha-icon>
+                          ${(attrs.target || "").replace("media_player.", "")}
+                        </span>
+                      `}
                   ${attrs.skip_holidays
                     ? html`
                         <span class="detail-item">

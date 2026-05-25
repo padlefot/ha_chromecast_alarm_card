@@ -212,6 +212,57 @@ export const cardStyles = css`
     --mdc-icon-size: 14px;
   }
 
+  .detail-item.clickable {
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 2px 6px;
+    margin: -2px -6px;
+    transition: background-color 0.2s;
+  }
+
+  .detail-item.clickable:hover {
+    background: var(--alarm-chip-bg);
+  }
+
+  /* Volume slider */
+  .volume-edit {
+    gap: 8px;
+  }
+
+  .volume-slider {
+    width: 100px;
+    height: 4px;
+    cursor: pointer;
+    accent-color: var(--alarm-primary);
+  }
+
+  .volume-label {
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* Target dropdown */
+  .target-edit {
+    gap: 6px;
+  }
+
+  .target-select {
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--alarm-text);
+    background: var(--alarm-chip-bg);
+    border: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+    border-radius: 8px;
+    padding: 4px 8px;
+    outline: none;
+    cursor: pointer;
+    max-width: 180px;
+  }
+
+  .target-select:focus {
+    border-color: var(--alarm-primary);
+  }
+
   /* Firing banner */
   .firing-banner {
     display: flex;
