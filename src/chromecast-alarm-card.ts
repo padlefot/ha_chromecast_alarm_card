@@ -100,13 +100,16 @@ export class ChromecastAlarmCard extends LitElement {
     super.updated(changedProps);
     if (!changedProps.has("hass")) return;
 
+    const oldHass = changedProps.get("hass") as any;
+    if (!oldHass) return; // Skip initial load — no previous state to compare
+
     const eventState = this._getState(this._eventEntity);
     if (!eventState) return;
 
-    const oldHass = changedProps.get("hass") as any;
-    const oldEvent = oldHass?.states?.[this._eventEntity];
+    const oldEvent = oldHass.states?.[this._eventEntity];
     if (
-      eventState.state !== oldEvent?.state &&
+      oldEvent &&
+      eventState.state !== oldEvent.state &&
       eventState.attributes?.event_type === "alarm_fired"
     ) {
       this._firing = true;
