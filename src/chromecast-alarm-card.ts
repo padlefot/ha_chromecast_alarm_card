@@ -57,7 +57,7 @@ export class ChromecastAlarmCard extends LitElement {
   }
 
   private get _baseId(): string {
-    // switch.williams_wakeup_alarm → williams_wakeup_alarm
+    // switch.morning_alarm → morning_alarm
     return this._config.entity.replace("switch.", "");
   }
 

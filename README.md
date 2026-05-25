@@ -10,6 +10,7 @@ A Mushroom-style Lovelace dashboard card for the [Chromecast Alarm](https://gith
 - Snooze, Dismiss, and Test buttons
 - Alarm firing animation with stop button
 - Details row: volume, target speaker, holiday skip, track count
+- Interactive: set time, toggle days, adjust volume, change speaker — all from the card
 - Configurable via visual editor (time size, day size, show/hide details)
 - Dark and light mode support
 
@@ -33,7 +34,7 @@ A Mushroom-style Lovelace dashboard card for the [Chromecast Alarm](https://gith
 
 ```yaml
 type: custom:chromecast-alarm-card
-entity: switch.williams_wakeup_alarm
+entity: switch.morning_alarm
 ```
 
 ### Options
@@ -47,4 +48,4 @@ entity: switch.williams_wakeup_alarm
 
 ## Requirements
 
-- [Chromecast Alarm](https://github.com/padlefot/ha_chromecast_alarm) integration v0.3.1+
+- [Chromecast Alarm](https://github.com/padlefot/ha_chromecast_alarm) integration v0.3.4+ (for volume/speaker control)
