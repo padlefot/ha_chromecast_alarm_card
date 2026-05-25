@@ -1,4 +1,4 @@
-import { LitElement, html, nothing, PropertyValues } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { cardStyles } from "./styles";
 import "./editor";
@@ -25,8 +25,7 @@ export class ChromecastAlarmCard extends LitElement {
 
   @property({ attribute: false }) public hass!: any;
   @state() private _config!: CardConfig;
-  @state() private _firing = false;
-  private _firingTimeout?: ReturnType<typeof setTimeout>;
+  // Firing state is read from switch attribute (is_firing)
 
   // -- HA card lifecycle --------------------------------------------------
 
@@ -94,30 +93,8 @@ export class ChromecastAlarmCard extends LitElement {
     return this._switchState?.attributes || {};
   }
 
-  // -- Detect alarm firing ------------------------------------------------
-
-  protected updated(changedProps: PropertyValues): void {
-    super.updated(changedProps);
-    if (!changedProps.has("hass")) return;
-
-    const oldHass = changedProps.get("hass") as any;
-    if (!oldHass) return; // Skip initial load — no previous state to compare
-
-    const eventState = this._getState(this._eventEntity);
-    if (!eventState) return;
-
-    const oldEvent = oldHass.states?.[this._eventEntity];
-    if (
-      oldEvent &&
-      eventState.state !== oldEvent.state &&
-      eventState.attributes?.event_type === "alarm_fired"
-    ) {
-      this._firing = true;
-      if (this._firingTimeout) clearTimeout(this._firingTimeout);
-      this._firingTimeout = setTimeout(() => {
-        this._firing = false;
-      }, 10000);
-    }
+  private get _isFiring(): boolean {
+    return !!this._attrs.is_firing;
   }
 
   // -- Actions ------------------------------------------------------------
@@ -253,12 +230,12 @@ export class ChromecastAlarmCard extends LitElement {
           <!-- Header -->
           <div class="header">
             <ha-icon
-              class="header-icon ${this._firing
+              class="header-icon ${this._isFiring
                 ? "firing"
                 : enabled
                 ? ""
                 : "disabled"}"
-              icon=${this._firing ? "mdi:alarm-bell" : "mdi:alarm"}
+              icon=${this._isFiring ? "mdi:bell-ring" : "mdi:alarm"}
             ></ha-icon>
             <span class="header-name">
               ${attrs.friendly_name || this._config.entity}
@@ -271,10 +248,10 @@ export class ChromecastAlarmCard extends LitElement {
           </div>
 
           <!-- Firing banner -->
-          ${this._firing
+          ${this._isFiring
             ? html`
                 <div class="firing-banner">
-                  <ha-icon icon="mdi:alarm-bell"></ha-icon>
+                  <ha-icon icon="mdi:bell-ring"></ha-icon>
                   ALARM FIRING
                   <button
                     class="chip-btn"
@@ -292,7 +269,7 @@ export class ChromecastAlarmCard extends LitElement {
           <div>
             <div class="time-wrapper">
               <div
-                class="primary-time ${this._firing
+                class="primary-time ${this._isFiring
                   ? "firing"
                   : enabled
                   ? ""
