@@ -183,22 +183,36 @@ export class ChromecastAlarmCard extends LitElement {
 
   // -- Target editing -------------------------------------------------------
 
+  private get _currentTargets(): string[] {
+    const attrs = this._attrs;
+    // Prefer 'targets' list, fall back to single 'target'
+    if (Array.isArray(attrs.targets) && attrs.targets.length > 0) {
+      return attrs.targets;
+    }
+    return attrs.target ? [attrs.target] : [];
+  }
+
   private _startEditTarget(): void {
     this._editingTarget = true;
   }
 
-  private _onTargetChange(ev: Event): void {
-    const select = ev.target as HTMLSelectElement;
-    const newTarget = select.value;
-    this._editingTarget = false;
-    if (!newTarget) return;
+  private _toggleTarget(entityId: string): void {
+    const current = [...this._currentTargets];
+    const idx = current.indexOf(entityId);
+    if (idx >= 0) {
+      // Don't allow removing the last speaker
+      if (current.length <= 1) return;
+      current.splice(idx, 1);
+    } else {
+      current.push(entityId);
+    }
     this.hass.callService("chromecast_alarm", "set_target", {
       entity_id: this._switchEntity,
-      target: newTarget,
+      target: current,
     });
   }
 
-  private _onTargetBlur(): void {
+  private _closeTargetEdit(): void {
     this._editingTarget = false;
   }
 
@@ -213,6 +227,19 @@ export class ChromecastAlarmCard extends LitElement {
           eid.replace("media_player.", ""),
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private _formatTargets(): string {
+    const targets = this._currentTargets;
+    if (targets.length === 0) return "No speaker";
+    return targets
+      .map((t) => {
+        const state = this.hass?.states?.[t];
+        return (
+          state?.attributes?.friendly_name || t.replace("media_player.", "")
+        );
+      })
+      .join(", ");
   }
 
   private _toggleDay(dayCode: string): void {
@@ -440,34 +467,39 @@ export class ChromecastAlarmCard extends LitElement {
                       `}
                   ${this._editingTarget
                     ? html`
-                        <span class="detail-item target-edit">
-                          <ha-icon icon="mdi:cast-audio"></ha-icon>
-                          <select
-                            class="target-select"
-                            @change=${this._onTargetChange}
-                            @blur=${this._onTargetBlur}
-                          >
+                        <div class="target-picker">
+                          <div class="target-picker-header">
+                            <ha-icon icon="mdi:cast-audio"></ha-icon>
+                            <span>Speakers</span>
+                            <button class="chip-btn" @click=${this._closeTargetEdit}>
+                              <ha-icon icon="mdi:check"></ha-icon>
+                              Done
+                            </button>
+                          </div>
+                          <div class="target-list">
                             ${this._mediaPlayers.map(
                               (mp) => html`
-                                <option
-                                  value=${mp.id}
-                                  ?selected=${mp.id === attrs.target}
-                                >
-                                  ${mp.name}
-                                </option>
+                                <label class="target-option">
+                                  <input
+                                    type="checkbox"
+                                    .checked=${this._currentTargets.includes(mp.id)}
+                                    @change=${() => this._toggleTarget(mp.id)}
+                                  />
+                                  <span>${mp.name}</span>
+                                </label>
                               `
                             )}
-                          </select>
-                        </span>
+                          </div>
+                        </div>
                       `
                     : html`
                         <span
                           class="detail-item clickable"
                           @click=${() => this._startEditTarget()}
-                          title="Click to change speaker"
+                          title="Click to change speakers"
                         >
                           <ha-icon icon="mdi:cast-audio"></ha-icon>
-                          ${(attrs.target || "").replace("media_player.", "")}
+                          ${this._formatTargets()}
                         </span>
                       `}
                   ${attrs.skip_holidays

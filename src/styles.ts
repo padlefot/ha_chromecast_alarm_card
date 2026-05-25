@@ -246,21 +246,59 @@ export const cardStyles = css`
     gap: 6px;
   }
 
-  .target-select {
-    font-size: 12px;
-    font-family: inherit;
-    color: var(--alarm-text);
-    background: var(--alarm-chip-bg);
+  /* Target multi-select picker */
+  .target-picker {
+    width: 100%;
     border: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
     border-radius: 8px;
-    padding: 4px 8px;
-    outline: none;
-    cursor: pointer;
-    max-width: 180px;
+    padding: 8px;
+    background: var(--alarm-bg);
   }
 
-  .target-select:focus {
-    border-color: var(--alarm-primary);
+  .target-picker-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--alarm-text);
+  }
+
+  .target-picker-header ha-icon {
+    --mdc-icon-size: 14px;
+  }
+
+  .target-picker-header span {
+    flex: 1;
+  }
+
+  .target-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .target-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--alarm-text);
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+
+  .target-option:hover {
+    background: var(--alarm-chip-bg);
+  }
+
+  .target-option input[type="checkbox"] {
+    accent-color: var(--alarm-primary);
   }
 
   /* Firing banner */

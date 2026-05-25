@@ -1,6 +1,6 @@
 {
   "name": "ha-chromecast-alarm-card",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Mushroom-style Lovelace card for the Chromecast Alarm integration",
   "main": "dist/chromecast-alarm-card.js",
   "scripts": {
