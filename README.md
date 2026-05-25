@@ -2,6 +2,8 @@
 
 A Mushroom-style Lovelace dashboard card for the [Chromecast Alarm](https://github.com/padlefot/ha_chromecast_alarm) Home Assistant integration.
 
+![Chromecast Alarm Card](images/screenshot.png)
+
 ## Features
 
 - Enable/disable toggle
